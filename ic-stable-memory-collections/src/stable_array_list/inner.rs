@@ -17,18 +17,17 @@ use ic_stable_memory_allocator::types::{SMAError, EMPTY_PTR};
 
 use log::{debug, info};
 
-#[derive(Clone,Copy)]
+#[derive(Clone, Copy)]
 pub struct StableArrayListInner<T: MemContext + Clone> {
     //buf: RawVec<u64>,
     ptr: u64,
     marker: PhantomData<T>,
     len: u64,
     cap: u64,
-    context: T
+    context: T,
 }
 
 impl<T: MemContext + Clone> StableArrayListInner<T> {
-
     pub fn new(
         length: u64,
         allocator: &mut StableMemoryAllocator<T>,
@@ -51,14 +50,14 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
             marker: PhantomData,
             len: 0,
             cap: length,
-            context: context.clone()
+            context: context.clone(),
         })
     }
 
-    pub fn len(self) -> u64 {
+    pub fn len(&self) -> u64 {
         self.len
     }
-    pub fn cap(self) -> u64 {
+    pub fn cap(&self) -> u64 {
         self.cap
     }
 
@@ -69,10 +68,12 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
         mem_block.read_u64(index, context).unwrap()
     }
 
-    pub fn replace(&mut self, value: u64, index: u64, context: &mut T){
+    pub fn replace(&mut self, value: u64, index: u64, context: &mut T) {
         assert!(index <= self.len);
         let mut mem_block = MemBlock::read_at(self.ptr, MemBlockSide::Start, context).unwrap();
-        mem_block.write_u64(1+size_of::<u64>() as u64 *index, value, context).unwrap();
+        mem_block
+            .write_u64(1 + size_of::<u64>() as u64 * index, value, context)
+            .unwrap();
     }
 
     pub fn insert(
@@ -91,16 +92,15 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
                 .reallocate(
                     self.ptr,     // todo: check. что с ptr?
                     self.cap * 2, // or self.cap+1
-                    context)
+                    context,
+                )
                 .unwrap();
             self.ptr = block.ptr;
             self.cap *= 2;
-            
         }
 
         let mut mem_block = MemBlock::read_at(self.ptr, MemBlockSide::Start, context).unwrap();
         unsafe {
-            
             // ptr::copy(
             //     mem_block.ptr.add(1+index) as *const u64,
             //     mem_block.ptr.add(1+ index + 1) as *mut u64,
@@ -121,7 +121,13 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
                 .unwrap();
         }
         self.len += 1;
-        println!("inserted at [{}] {}",index,mem_block.read_u64(1 + size_of::<u64>() as u64 * index, context).unwrap());
+        println!(
+            "inserted at [{}] {}",
+            index,
+            mem_block
+                .read_u64(1 + size_of::<u64>() as u64 * index, context)
+                .unwrap()
+        );
     }
 
     pub fn push(&mut self, value: u64, allocator: &mut StableMemoryAllocator<T>, context: &mut T) {
@@ -133,7 +139,6 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
                     // for i in 0..6 {
                     //     array_list.push(i+10, &mut allocator, &mut context);
                     // }
-            
                     context,
                 )
                 .unwrap();
@@ -147,7 +152,7 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
         self.len += 1;
     }
 
-    pub fn remove(){
+    pub fn remove() {
         //todo:
     }
 }
@@ -204,11 +209,10 @@ mod tests {
 
         array_list.insert(13, 2, &mut allocator, &mut context);
         array_list.insert(1001, 4, &mut allocator, &mut context);
-/*
+        
         for i in 0..array_list.len() {
             let x = array_list.get(i, &context);
             println!("[{}] {}", i, x);
         }
-*/
     }
 }
