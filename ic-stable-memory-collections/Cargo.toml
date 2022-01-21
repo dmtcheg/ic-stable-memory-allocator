@@ -13,4 +13,5 @@ path = "src/lib.rs"
 
 [dependencies]
 ic-cdk = "0.3"
+log = "0.4"
 ic-stable-memory-allocator = { path = "../ic-stable-memory-allocator" }
