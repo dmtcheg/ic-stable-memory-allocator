@@ -85,12 +85,10 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
     ) {
         assert!(index < self.len);
 
-        //todo: check grow
-        //todo: try realloc
         if self.len == self.cap {
             let block = allocator
                 .reallocate(
-                    self.ptr,     // todo: check. что с ptr?
+                    self.ptr,
                     self.cap * 2, // or self.cap+1
                     context,
                 )
@@ -101,16 +99,11 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
 
         let mut mem_block = MemBlock::read_at(self.ptr, MemBlockSide::Start, context).unwrap();
         unsafe {
-            // ptr::copy(
-            //     mem_block.ptr.add(1+index) as *const u64,
-            //     mem_block.ptr.add(1+ index + 1) as *mut u64,
-            //     (self.len - index).try_into().unwrap(),
-            // );
-
+      
             for i in self.len..index {
                 let v = mem_block
                     .read_u64(1 + size_of::<u64>() as u64 * (i - 1), &context)
-                    .unwrap(); //todo: correct offset
+                    .unwrap();
                 mem_block
                     .write_u64(1 + size_of::<u64>() as u64 * i, v, context)
                     .unwrap();
@@ -135,10 +128,7 @@ impl<T: MemContext + Clone> StableArrayListInner<T> {
             let new_mem_block = allocator
                 .reallocate(
                     self.ptr,
-                    self.cap * 2, // or self.cap+1
-                    // for i in 0..6 {
-                    //     array_list.push(i+10, &mut allocator, &mut context);
-                    // }
+                    self.cap * 2,
                     context,
                 )
                 .unwrap();
@@ -207,8 +197,8 @@ mod tests {
         array_list.push(8, &mut allocator, &mut context);
         //array_list.push(10, &mut allocator, &mut context);
 
-        array_list.insert(13, 2, &mut allocator, &mut context);
-        array_list.insert(1001, 4, &mut allocator, &mut context);
+        array_list.push(13, &mut allocator, &mut context);
+        array_list.push(1001, &mut allocator, &mut context);
         
         for i in 0..array_list.len() {
             let x = array_list.get(i, &context);
